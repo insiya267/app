@@ -1,11 +1,11 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, jsonify
 from scipy.stats import t
 import numpy as np
 from statistics import stdev
 import json
- 
+
 app = Flask(__name__)
- 
+
 def hypothesis_test_calculation(X, alpha, mu, alternative):
     """
     Perform hypothesis test and return results as dictionary
@@ -60,11 +60,38 @@ def hypothesis_test_calculation(X, alpha, mu, alternative):
         result['rejection_region'] = f't < {round(t_table_neg, 4)} or t > {round(t_table_pos, 4)}'
     
     return result
- 
+
+# --- THIS IS THE NEW PART THAT REPLACES TEMPLATES ---
 @app.route('/')
 def index():
-    return render_template('index.html')
- 
+    return """
+    <div style="font-family: Arial, sans-serif; margin: 40px; max-width: 500px;">
+        <h2 style="color: #333;">Hypothesis Test Calculator</h2>
+        <div style="background-color: #f4f4f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+            <form action="/test" method="POST">
+                <label style="font-weight: bold;">Enter Data (comma separated numbers):</label><br>
+                <input type="text" name="data" placeholder="e.g. 1.2, 3.4, 5.6" required style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;"><br>
+
+                <label style="font-weight: bold;">Alpha (default 0.05):</label><br>
+                <input type="text" name="alpha" value="0.05" style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;"><br>
+
+                <label style="font-weight: bold;">Mu (Population Mean):</label><br>
+                <input type="text" name="mu" value="0" style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;"><br>
+
+                <label style="font-weight: bold;">Alternative Hypothesis:</label><br>
+                <select name="alternative" style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="two-sided">Two-sided</option>
+                    <option value="less">Less</option>
+                    <option value="greater">Greater</option>
+                </select><br>
+
+                <input type="submit" value="Run Calculation" style="width: 100%; padding: 10px; background-color: #0056b3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+            </form>
+        </div>
+    </div>
+    """
+# ----------------------------------------------------
+
 @app.route('/test', methods=['POST'])
 def test():
     try:
@@ -101,7 +128,6 @@ def test():
         return jsonify({'error': f'Invalid number format: {str(e)}'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
- 
+
 if __name__ == '__main__':
     app.run(debug=True)
- 
